@@ -1,0 +1,66 @@
+package Laberinto;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import.java.util.Scanner;
+
+public class Laberinto {
+
+//defini el main y aun no eh puesto ruta del archivo, 6:45pm
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        System.out.print("Ruta del archivo: ");
+        String ruta = sc.nextLine();
+        if (ruta.isEmpty()) {
+            ruta = "laberinto.txt";
+        }
+
+        char[][] laberinto = cargarLaberinto(ruta);
+        if (laberinto != null) {
+            for (int i = 0; i < laberinto.length; i++) {
+                for (int j = 0; j < laberinto[i].length; j++) {
+                    System.out.print(laberinto[i][j]);
+                }
+                System.out.println();
+            }
+        }
+    }
+
+        //decidi añadirle verifiacion para el archivo si esta vacio 6:55pm
+        //si ocupas que lo quite o esta bien dime
+    public static char[][] cargarLaberinto(String ruta) {
+        ArrayList<String> lineas = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(ruta))) {
+            String linea;
+            while ((linea = br.readLine()) != null) {
+                lineas.add(linea);
+            } 
+            //el archivo no se encontro 7:06pm
+        } catch (IOException e) {
+            System.out.println("Error al leer el archivo: " + e.getMessage());
+            return null;
+        }
+        //archivo vacio   
+        if (lineas.isEmpty()) {
+            System.out.println("El archivo esta vacio.");
+            return null;
+        }
+
+        int renglones = lineas.size();
+        int columnas = lineas.get(0).length();
+        char[][] matriz = new char[renglones][columnas];
+
+        //perdoname cotecius, el contador me dio problemas 7:12pm
+        //tuve que usar un poco de gemini porque ni con los proyectos en clase supe
+        for (int i = 0; i < renglones; i++) {
+            String linea = lineas.get(i);
+            for (int j = 0; j < columnas; j++) {
+                matriz[i][j] = linea.charAt(j);
+            }
+        }
+
+        return matriz;
+    }
+}
