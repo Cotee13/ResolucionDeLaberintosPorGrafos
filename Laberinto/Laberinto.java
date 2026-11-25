@@ -4,11 +4,10 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import.java.util.Scanner;
+import java.util.Scanner;
 
 public class Laberinto {
-
-//defini el main y aun no eh puesto ruta del archivo, 6:45pm
+    //defini el main y aun no eh puesto ruta del archivo, 6:45pm
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
         System.out.print("Ruta del archivo: ");
