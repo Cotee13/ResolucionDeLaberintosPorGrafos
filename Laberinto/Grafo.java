@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
 import java.util.HashSet;
+import java.util.Queue;
 
 public class Grafo {
     private Vertices vertices;
@@ -199,8 +200,50 @@ public class Grafo {
     }
 
     public List<Vertice> BFS() {
-        throw new UnsupportedOperationException(
-                "BFS pendiente de implementar");
+        
+        limpiarResultado();
+
+        List<Vertice> ordenVisita = new ArrayList<>();
+        HashSet<Integer> visitados = new HashSet<>();
+        Hashtable<Integer, Vertice> predecesores = new Hashtable<>();
+
+        Queue<Vertice> cola = new LinkedList<>();
+
+        cola.add(entrada);
+        visitados.add(entrada.getId());
+
+        while (!cola.isEmpty()) {
+            Vertice actual = cola.poll();
+            ordenVisita.add(actual);
+
+            //metodo si encuentra la salida
+            if (actual.getId() == salida.getId()) {
+                List<Vertice> camino = new ArrayList<>();
+                Vertice paso = salida;
+
+                while (paso.getId() != entrada.getId()) {
+                    camino.add(0, paso);
+                    paso = predecesores.get(paso.getId());
+                }
+                camino.add(0, entrada);
+
+                guardarResultado(camino, true);
+                return ordenVisita;
+            }
+            
+            ArrayList<Vertice> vecinos = obtenerVecinos(actual);
+            for (Vertice vecino : vecinos) {
+                if (!visitados.contains(vecino.getId())) {
+                    visitados.add(vecino.getId());
+                    predecesores.put(vecino.getId(), actual);
+                    cola.add(vecino);
+                }
+            }
+        }
+
+        //Para cuando no encuentre el camino
+        guardarResultado(new ArrayList<>(), false);
+        return ordenVisita;
     }
 
     public List<Vertice> caminoMasCorto() {
