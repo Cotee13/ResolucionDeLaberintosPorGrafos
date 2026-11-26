@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Stack;
+import java.util.HashSet;
 
 public class Grafo {
     private Vertices vertices;
@@ -133,8 +135,67 @@ public class Grafo {
     // se implementan los algoritmos
 
     public List<Vertice> DFS() {
-        throw new UnsupportedOperationException(
-                "DFS pendiente de implementar");
+        limpiarResultado();
+
+        List<Vertice> ordenVisita = new ArrayList<>();
+        HashSet<Integer> visitados = new HashSet<>();
+        Hashtable<Integer, Vertice> predecesores = new Hashtable<>();
+
+        Stack<Vertice> pila = new Stack<>();
+        Stack<Vertice> padres = new Stack<>();
+
+        pila.push(entrada);
+        padres.push(entrada);
+
+        while (!pila.isEmpty()) {
+            
+            Vertice actual = pila.pop();
+            Vertice padre = padres.pop();
+
+            if (visitados.contains(actual.getId())) {
+                continue;
+                
+            }
+            visitados.add(actual.getId());
+            ordenVisita.add(actual);
+
+            if (actual.getId() != entrada.getId()) {
+                predecesores.put(actual.getId(), padre);
+                
+            }
+
+            //Metodo si encuentra la salida
+            if (actual.getId() == salida.getId()) {
+                List<Vertice> camino = new ArrayList<>();
+                Vertice paso = salida;
+
+                while (paso.getId() != entrada.getId()) {
+                    camino.add(0, paso);
+                    paso = predecesores.get(paso.getId());
+                    
+                }
+                camino.add(0, entrada);
+
+                guardarResultado(camino, true);
+                return ordenVisita;
+                
+            }
+
+            ArrayList<Vertice> vecinos = obtenerVecinos(actual);
+            for(int i = vecinos.size() - 1; i >= 0; i--) {
+                Vertice vecino = vecinos.get(i);
+
+                if (!visitados.contains(vecino.getId())) {
+                    pila.push(vecino);
+                    padres.push(actual);
+                }
+            }
+            
+        }
+
+        //Para cuando no encuentre ni un camino
+        guardarResultado(new ArrayList<>(), false);
+        return ordenVisita;
     }
 
     public List<Vertice> BFS() {
