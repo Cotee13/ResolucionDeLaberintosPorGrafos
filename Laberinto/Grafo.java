@@ -247,8 +247,89 @@ public class Grafo {
     }
 
     public List<Vertice> caminoMasCorto() {
-        throw new UnsupportedOperationException(
-                "Dijkstra pendiente de implementar");
+        
+    limpiarResultado();
+
+    List<Vertice> ordenVisita = new ArrayList<>();
+    HashSet<Integer> visitados = new HashSet<>();
+    Hashtable<Integer, Integer> distancias = new Hashtable<>();
+    Hashtable<Integer, Vertice> predecesores = new Hashtable<>();
+
+    ArrayList<Vertice> pendientes = new ArrayList<>();
+
+    distancias.put(entrada.getId(), 0);
+    pendientes.add(entrada);
+
+    while (!pendientes.isEmpty()) {
+
+        // Buscar el vertice con la menor distancia
+        int indiceMenor = 0;
+
+        for (int i = 1; i < pendientes.size(); i++) {
+
+            Vertice candidato = pendientes.get(i);
+            Vertice menor = pendientes.get(indiceMenor);
+
+            int distanciaCandidato = distancias.get(candidato.getId());
+            int distanciaMenor = distancias.get(menor.getId());
+
+            if (distanciaCandidato < distanciaMenor
+                    || (distanciaCandidato == distanciaMenor
+                    && candidato.getId() < menor.getId())) {
+
+                indiceMenor = i;
+            }
+        }
+
+        Vertice actual = pendientes.remove(indiceMenor);
+
+        visitados.add(actual.getId());
+        ordenVisita.add(actual);
+
+        // Metodo si encuentra la salida
+        if (actual.getId() == salida.getId()) {
+
+            List<Vertice> camino = new ArrayList<>();
+            Vertice paso = salida;
+
+            while (paso.getId() != entrada.getId()) {
+                camino.add(0, paso);
+                paso = predecesores.get(paso.getId());
+            }
+
+            camino.add(0, entrada);
+
+            guardarResultado(camino, true);
+            return ordenVisita;
+        }
+
+        // Revisar los vecinos del vertice actual
+        ArrayList<Vertice> vecinos = obtenerVecinos(actual);
+
+        for (Vertice vecino : vecinos) {
+
+            if (!visitados.contains(vecino.getId())) {
+
+                // Cada movimiento tiene costo 1
+                int nuevaDistancia = distancias.get(actual.getId()) + 1;
+
+                if (!distancias.containsKey(vecino.getId())
+                        || nuevaDistancia < distancias.get(vecino.getId())) {
+
+                    distancias.put(vecino.getId(), nuevaDistancia);
+                    predecesores.put(vecino.getId(), actual);
+
+                    if (!pendientes.contains(vecino)) {
+                        pendientes.add(vecino);
+                    }
+                }
+            }
+        }
+    }
+
+    // Para cuando no encuentre el camino
+    guardarResultado(new ArrayList<>(), false);
+    return ordenVisita;
     }
 }
 
