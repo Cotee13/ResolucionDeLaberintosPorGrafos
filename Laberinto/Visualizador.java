@@ -14,7 +14,56 @@ public class Visualizador {
         this.grafo = grafo;
         this.sc = sc;
     }
+        //mostrar las tres soluciones sin animacion, para comparar los resultados de cada algoritmo
+    public void mostrarTresSoluciones() {
 
+        System.out.println("\n===== COMPARACION DE SOLUCIONES =====");
+
+        // Primera solucion: DFS
+        System.out.println("\n--- DFS ---");
+        List<Vertice> visitasDFS = grafo.DFS();
+        mostrarResultado(visitasDFS);
+
+        // Segunda solucion: BFS
+        System.out.println("\n--- BFS ---");
+        List<Vertice> visitasBFS = grafo.BFS();
+        mostrarResultado(visitasBFS);
+
+        // Tercera solucion: Dijkstra
+        System.out.println("\n--- DIJKSTRA ---");
+        List<Vertice> visitasDijkstra = grafo.caminoMasCorto();
+        mostrarResultado(visitasDijkstra);
+    }
+
+    
+    private void mostrarResultado(List<Vertice> ordenVisita) {
+
+        boolean[][] visitados =
+                new boolean[laberinto.length][laberinto[0].length];
+
+        // Marcar los vertices visitados
+        for (Vertice vertice : ordenVisita) {
+            visitados[vertice.getFila()][vertice.getColumna()] = true;
+        }
+
+        // Mostrar el laberinto sin animacion
+        mostrar(visitados, null, true);
+
+        System.out.println("Vertices visitados: " + ordenVisita.size());
+
+        if (grafo.isSolucionEncontrada()) {
+
+            int movimientos = grafo.getCaminoFinal().size() - 1;
+
+            System.out.println("Camino encontrado.");
+            System.out.println("Longitud: " + movimientos + " movimientos");
+
+        } else {
+            System.out.println("No existe camino entre la entrada y la salida.");
+        }
+    }
+
+    // Mostrar el laberinto paso a paso con animacion
     public void despliegaLaberinto(List<Vertice> ordenVisita) {
          boolean[][] visitados = new boolean[laberinto.length][laberinto[0].length];
 
