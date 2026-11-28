@@ -1,41 +1,98 @@
 package Laberinto;
 
-import java.io.File;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class Laberinto {
 
-    static int filaEntrada, columnaEntrada;
-    static int filaSalida, columnaSalida;
+    static Scanner sc = new Scanner(System.in);
+    static int filaEntrada, columnaEntrada, filaSalida, columnaSalida;
+    static int pausaMs = 1;
+
+    static char[][] laberinto = null;
+    static Grafo grafo = null;
+    static String algoritmo = "";
+
+
+    static List<Vertice> visitasDFS, caminoDFS, visitasBFS, caminoBFS, visitasDijkstra, caminoDijkstra;
 
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
+        String opcion;
 
-        //se creo un pequeño menu para tener mas orden y que se vea mas limpio
-        System.out.println("===== CARGAR LABERINTO =====");
+        do {
+            System.out.println("\n1. Cargar laberinto");
+            System.out.println("2. Resolver laberinto con DFS");
+            System.out.println("3. Resolver laberinto con BFS");
+            System.out.println("4. Resolver laberinto con Dijkstra (camino mas corto)");
+            System.out.println("5. Mostrar las tres soluciones");
+            System.out.println("6. Salir");
+            System.out.print("Selecciona una opcion: ");
+            opcion = sc.nextLine();
+
+            if (!opcion.equals("1") && !opcion.equals("6") && laberinto == null) {
+                System.out.println("Error: primero debes cargar un laberinto.");
+                continue;
+            }
+
+            switch (opcion) {
+                case "1":
+                    seleccionarArchivo();
+                    break;
+                case "2":
+                    algoritmo = "DFS";
+                    visitasDFS = grafo.DFS();
+                    caminoDFS = grafo.getCaminoFinal();
+                    despliegaLaberinto(visitasDFS);
+                    break;
+                case "3":
+                    algoritmo = "BFS";
+                    visitasBFS = grafo.BFS();
+                    caminoBFS = grafo.getCaminoFinal();
+                    despliegaLaberinto(visitasBFS);
+                    break;
+                case "4":
+                    algoritmo = "Dijkstra";
+                    visitasDijkstra = grafo.caminoMasCorto();
+                    caminoDijkstra = grafo.getCaminoFinal();
+                    despliegaLaberinto(visitasDijkstra);
+                    break;
+                case "5":
+                    mostrarTresSoluciones();
+                    break;
+                case "6":
+                    System.out.println("Saliendo...");
+                    break;
+                default:
+                    System.out.println("Opcion no valida.");
+            }
+        } while (!opcion.equals("6"));
+
+        sc.close();
+    }
+
+    public static void seleccionarArchivo() {
+        System.out.println("\n===== CARGAR LABERINTO =====");
         System.out.println("1. laberinto1.txt");
         System.out.println("2. laberinto2.txt");
         System.out.println("3. laberinto3.txt");
         System.out.println("4. Cargar otro archivo");
-
         System.out.print("Selecciona una opcion: ");
         String opcion = sc.nextLine();
         String ruta;
 
-        //aqui van las URL con los grafos dentro
         switch (opcion) {
             case "1":
-                ruta = "C:\\Users\\juanp\\OneDrive\\Documentos\\GitHub\\ResolucionDeLaberintosPorGrafos\\laberinto1.txt";
+                ruta = "C:\\Users\\juanp\\OneDrive\\Documentos\\GitHub\\ResolucionDeLaberintosPorGrafos\\laberinto1_v2.txt";
                 break;
             case "2":
-                ruta = "laberintos/laberinto2.txt";
+                ruta = "C:\\Users\\juanp\\OneDrive\\Documentos\\GitHub\\ResolucionDeLaberintosPorGrafos\\laberinto2_v2.txt";
                 break;
             case "3":
-                ruta = "laberintos/laberinto3.txt";
+                ruta = "C:\\Users\\juanp\\OneDrive\\Documentos\\GitHub\\ResolucionDeLaberintosPorGrafos\\laberinto3_v2.txt";
                 break;
             case "4":
                 System.out.print("Ruta del archivo: ");
@@ -43,31 +100,24 @@ public class Laberinto {
                 break;
             default:
                 System.out.println("Opcion no valida.");
-                sc.close();
                 return;
         }
 
-        char[][] laberinto = cargarLaberinto(ruta);
+        char[][] nuevo = cargarLaberinto(ruta);
+        if (nuevo != null) {
+            laberinto = nuevo;
+            grafo = new Grafo(laberinto, filaEntrada, columnaEntrada, filaSalida, columnaSalida);
+            visitasDFS = visitasBFS = visitasDijkstra = null;
 
-        if (laberinto != null) {
-            System.out.println("\nLaberinto cargado correctamente.");
-            System.out.println("Renglones: " + laberinto.length);
-            System.out.println("Columnas: " + laberinto[0].length);
-            System.out.println("Entrada: (" + filaEntrada + ", " + columnaEntrada + ")");
-            System.out.println("Salida: (" + filaSalida + ", " + columnaSalida + ")");
-            System.out.println();
-
+            System.out.println("\nLaberinto cargado correctamente (" + laberinto.length + "x" + laberinto[0].length + ")");
+            System.out.println("Entrada: (" + filaEntrada + ", " + columnaEntrada + ") | Salida: (" + filaSalida + ", " + columnaSalida + ")\n");
             for (int i = 0; i < laberinto.length; i++) {
-                for (int j = 0; j < laberinto[i].length; j++) {
-                    System.out.print(laberinto[i][j]);
-                }
-                System.out.println();
+                System.out.println(laberinto[i]);
             }
         }
-        sc.close();
     }
 
-    //se implementa el cargar laberinto y revisar si es valido o no
+
     public static char[][] cargarLaberinto(String ruta) {
         ArrayList<String> lineas = new ArrayList<>();
 
@@ -81,7 +131,6 @@ public class Laberinto {
             return null;
         }
 
-        // Verificar si el archivo esta vacio
         if (lineas.isEmpty()) {
             System.out.println("El archivo esta vacio.");
             return null;
@@ -103,19 +152,13 @@ public class Laberinto {
         }
 
         char[][] matriz = new char[renglones][columnas];
-        int cantidadE = 0;
-        int cantidadS = 0;
-        int entradaFila = -1;
-        int entradaColumna = -1;
-        int salidaFila = -1;
-        int salidaColumna = -1;
+        int cantidadE = 0, cantidadS = 0;
+        int entradaFila = -1, entradaColumna = -1;
+        int salidaFila = -1, salidaColumna = -1;
         int aberturas = 0;
-        int primeraFila = -1;
-        int primeraColumna = -1;
-        int segundaFila = -1;
-        int segundaColumna = -1;
+        int primeraFila = -1, primeraColumna = -1;
+        int segundaFila = -1, segundaColumna = -1;
 
-        //se validan los caracteres del laberinto
         for (int i = 0; i < renglones; i++) {
             String linea = lineas.get(i);
             for (int j = 0; j < columnas; j++) {
@@ -175,5 +218,97 @@ public class Laberinto {
         filaSalida = salidaFila;
         columnaSalida = salidaColumna;
         return matriz;
+    }
+
+
+    public static void despliegaLaberinto(List<Vertice> ordenVisita) {
+        List<Vertice> visitados = new ArrayList<>();
+
+        for (int i = 0; i < ordenVisita.size(); i++) {
+            Vertice actual = ordenVisita.get(i);
+            visitados.add(actual);
+
+            System.out.println("\n" + algoritmo + " - Paso " + (i + 1) + "/" + ordenVisita.size());
+            System.out.println("Leyenda: E=Entrada | S=Salida | @=Actual | .=Visitado | +-|=Pared");
+            imprimirTablero(visitados, null, actual);
+
+            try {
+                Thread.sleep(pausaMs);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+
+        List<Vertice> caminoFinal = grafo.getCaminoFinal();
+        System.out.println("\n===== RESULTADO FINAL: " + algoritmo + " =====");
+        System.out.println("Leyenda: E=Entrada | S=Salida | *=Camino | .=Explorado | +-|=Pared");
+        imprimirTablero(visitados, caminoFinal, null);
+        System.out.println("Vertices visitados: " + ordenVisita.size());
+        System.out.println(!caminoFinal.isEmpty()
+                ? "Longitud del camino (movimientos): " + (caminoFinal.size() - 1)
+                : "No existe camino entre la entrada y la salida.");
+    }
+
+
+    public static void mostrarTresSoluciones() {
+        if (visitasDFS == null) {
+            visitasDFS = grafo.DFS();
+            caminoDFS = grafo.getCaminoFinal();
+        }
+        if (visitasBFS == null) {
+            visitasBFS = grafo.BFS();
+            caminoBFS = grafo.getCaminoFinal();
+        }
+        if (visitasDijkstra == null) {
+            visitasDijkstra = grafo.caminoMasCorto();
+            caminoDijkstra = grafo.getCaminoFinal();
+        }
+
+        String[] nombres = {"DFS", "BFS", "Dijkstra (camino mas corto)"};
+        List[] visitas = {visitasDFS, visitasBFS, visitasDijkstra};
+        List[] caminos = {caminoDFS, caminoBFS, caminoDijkstra};
+
+        System.out.println("\n===== LAS TRES SOLUCIONES =====");
+        System.out.println("Leyenda: E=Entrada | S=Salida | *=Camino | .=Explorado");
+
+        for (int k = 0; k < 3; k++) {
+            System.out.println("\n--- " + nombres[k] + " ---");
+            imprimirTablero(visitas[k], caminos[k], null);
+            System.out.println("Vertices visitados: " + visitas[k].size());
+            System.out.println(!caminos[k].isEmpty()
+                    ? "Longitud del camino (movimientos): " + (caminos[k].size() - 1)
+                    : "No existe camino.");
+        }
+    }
+
+    private static void imprimirTablero(List<Vertice> visitados, List<Vertice> camino, Vertice actual) {
+        for (int i = 0; i < laberinto.length; i++) {
+            for (int j = 0; j < laberinto[0].length; j++) {
+                if (actual != null && actual.getFila() == i && actual.getColumna() == j) {
+                    System.out.print('@');
+                } else if (i == filaEntrada && j == columnaEntrada) {
+                    System.out.print('E');
+                } else if (i == filaSalida && j == columnaSalida) {
+                    System.out.print('S');
+                } else if (contiene(camino, i, j)) {
+                    System.out.print('*');
+                } else if (contiene(visitados, i, j)) {
+                    System.out.print('.');
+                } else if (laberinto[i][j] == '#') {
+                    System.out.print(' ');
+                } else {
+                    System.out.print(laberinto[i][j]);
+                }
+            }
+            System.out.println();
+        }
+    }
+
+    private static boolean contiene(List<Vertice> lista, int fila, int col) {
+        if (lista == null) return false;
+        for (Vertice v : lista) {
+            if (v.getFila() == fila && v.getColumna() == col) return true;
+        }
+        return false;
     }
 }
